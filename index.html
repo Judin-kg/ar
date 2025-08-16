@@ -1,70 +1,31 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>AR model</title>
-    <!-- Load model-viewer -->
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-    <style>
-      body { margin:0; font-family:system-ui; }
-      model-viewer { width:100vw; height:100vh; background:#f6f6f6; }
-      .progress-bar { position:absolute; left:50%; top:12px; transform:translateX(-50%); width:160px; height:4px; background:#ddd; border-radius:2px; overflow:hidden; }
-      .update-bar { width:0; height:100%; background:#999; }
-      .hide { display:none; }
-      #ar-button { 
-        position:absolute; 
-        left:50%; 
-        bottom:24px; 
-        transform:translateX(-50%); 
-        padding:12px 16px; 
-        border-radius:999px; 
-        border:none; 
-        background:#ff6600; 
-        color:white; 
-        font-size:14px; 
-        cursor:pointer;
-        box-shadow:0 4px 10px rgba(0,0,0,0.3);
-      }
-      #ar-button:hover { background:#e05500; }
-      #ar-prompt { position:absolute; right:16px; bottom:16px; }
-      #ar-prompt img { width:40px; }
-    </style>
-  </head>
-  <body>
-    <model-viewer
-      src="8_16_2025.glb"
-      ios-src="8_16_2025.usdz"
-      poster="8_16_2025.webp"
-      camera-controls
-      ar
-      ar-modes="scene-viewer quick-look webxr"
-      tone-mapping="neutral"
-      shadow-intensity="1"
-      exposure="1"
-      environment-image="neutral"
-      autoplay>
-      
-      <div class="progress-bar" slot="progress-bar"><div class="update-bar"></div></div>
-      <button slot="ar-button" id="ar-button">📱 View in your space</button>
-      <div id="ar-prompt"><img alt="" src="https://modelviewer.dev/shared-assets/icons/hand.png" /></div>
-    </model-viewer>
-
-    <script>
-      const mv = document.querySelector('model-viewer');
-      const bar = document.querySelector('.update-bar');
-      const wrap = document.querySelector('.progress-bar');
-
-      mv.addEventListener('progress', (e) => {
-        const p = Math.round(e.detail.totalProgress * 100);
-        bar.style.width = p + '%';
-        wrap.classList.toggle('hide', p === 100);
-      });
-
-      // Hide the hand prompt after user interacts
-      mv.addEventListener('camera-change', () => {
-        document.querySelector('#ar-prompt').style.display = 'none';
-      });
-    </script>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AR Test</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    body { margin:0; }
+    model-viewer { width:100vw; height:100vh; }
+    #ar-button {
+      position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
+      padding: 12px 20px; border-radius: 30px; border: none;
+      background: #ff6600; color: white; font-size: 16px;
+      cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <model-viewer
+    src="8_16_2025.glb"
+    ios-src="8_16_2025.usdz"
+    camera-controls
+    ar
+    ar-modes="scene-viewer quick-look webxr"
+    autoplay>
+    
+    <button slot="ar-button" id="ar-button">📱 View in your space</button>
+  </model-viewer>
+</body>
 </html>
