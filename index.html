@@ -1,31 +1,208 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AR Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AR Viewer — GLB in your space</title>
+  <!-- 1) Load <model-viewer> web component -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
   <style>
-    body { margin:0; }
-    model-viewer { width:100vw; height:100vh; }
-    #ar-button {
-      position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%);
-      padding: 12px 20px; border-radius: 30px; border: none;
-      background: #ff6600; color: white; font-size: 16px;
-      cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    :root {
+      --accent: #0ea5e9; /* cyan-500 */
+      --bg: #0b1020;
+      --card: #121a34;
+      --text: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 70% -10%, #192246, #0b1020 40%);
+      color: var(--text);
+    }
+    header {
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; backdrop-filter: blur(8px);
+      background: rgba(11,16,32,0.6); border-bottom: 1px solid rgba(255,255,255,0.06);
+      z-index: 10;
+    }
+    .brand { font-weight: 700; letter-spacing: 0.3px; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    /* Make model-viewer fill a tasteful viewport height */
+    model-viewer {
+      width: 100%; height: 70vh; display: block; background: #0a0f1f;
+      --progress-bar-color: var(--accent);
+      --poster-color: #0a0f1f;
+      --poster-image: none;
+    }
+    .toolbar { display:flex; gap: 12px; padding: 12px; align-items:center; justify-content: space-between; background: var(--card); }
+    .left { display:flex; gap:12px; align-items:center; }
+    .pill { padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); font-size: 13px; }
+    .btn {
+      appearance: none; border: 1px solid rgba(255,255,255,0.14);
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+      color: var(--text); padding: 10px 14px; border-radius: 12px;
+      font-weight: 600; cursor: pointer; transition: transform .08s ease, box-shadow .2s;
+    }
+    .btn:hover { box-shadow: 0 8px 24px rgba(14,165,233,0.25); }
+    .btn:active { transform: translateY(1px) scale(0.98); }
+    .btn-primary { border-color: rgba(14,165,233,0.5); }
+
+    /* Custom AR button */
+    #arButton {
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    #arButton svg { width: 18px; height: 18px; }
+
+    /* Progress overlay */
+    .progress {
+      position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;
+    }
+    .bar {
+      width: min(360px, 80%); height: 6px; border-radius: 999px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06);
+    }
+    .bar > span { display:block; height: 100%; width: 0%; background: var(--accent); transition: width .2s ease; }
+
+    /* Error toast */
+    .toast {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 16px; background: #0f172a; border:1px solid rgba(255,255,255,.14);
+      padding: 10px 14px; border-radius: 12px; display:none; z-index: 50;
     }
   </style>
 </head>
 <body>
-  <model-viewer
-    src="8_16_2025.glb"
-    ios-src="8_16_2025.usdz"
-    camera-controls
-    ar
-    ar-modes="scene-viewer quick-look webxr"
-    autoplay>
-    
-    <button slot="ar-button" id="ar-button">📱 View in your space</button>
-  </model-viewer>
+  <header>
+    <div class="brand">AR Viewer</div>
+    <div class="pill">GLB ➜ WebXR / Scene Viewer / Quick Look</div>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <!--
+        ✅ Replace the two src placeholders below:
+        - src="/models/your-model.glb" with your GLB/GLTF path
+        - ios-src="/models/your-model.usdz" with a USDZ for iOS Quick Look
+          (Quick Look requires USDZ. You can convert via Apple Reality Converter.)
+      -->
+
+      <model-viewer id="viewer"
+        src="8_16_2025.glb"
+        ios-src="8_16_2025.usdz"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        ar-scale="fixed"             
+        ar-placement="floor"         
+        camera-controls
+        environment-image="neutral"
+        exposure="1.1"
+        shadow-intensity="1"
+        poster=""
+        disable-zoom="false"
+        interaction-prompt="when-focused"
+        tone-mapping="aces"
+        alt="3D model in AR"
+      >
+        <!-- Built-in progress bar hidden; we use our own -->
+        <div class="progress" slot="progress-bar">
+          <div class="bar"><span id="pbar"></span></div>
+        </div>
+
+        <!-- Custom AR button (replaces default) -->
+        <button id="arButton" slot="ar-button" class="btn btn-primary" title="View in your space">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 3l8.66 5v8L12 21l-8.66-5V8L12 3z" stroke="currentColor" stroke-width="1.6"/><path d="M12 3v8l8.66 5M12 11L3.34 16" stroke="currentColor" stroke-width="1.6" opacity=".6"/></svg>
+          View in AR
+        </button>
+
+        <!-- Fallback when AR not supported -->
+        <button slot="ar-button" id="noAr" class="btn" disabled hidden>AR not available</button>
+      </model-viewer>
+
+      <div class="toolbar">
+        <div class="left">
+          <button class="btn" id="reset">Reset View</button>
+          <button class="btn" id="autoScale">AR Scale: <span id="scaleMode">fixed</span></button>
+        </div>
+        <div class="pill" id="hint">Tip: move your phone to detect the floor</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const mv = document.getElementById('viewer');
+    const pbar = document.getElementById('pbar');
+    const toast = document.getElementById('toast');
+    const noArBtn = document.getElementById('noAr');
+    const scaleMode = document.getElementById('scaleMode');
+
+    // Progress events
+    mv.addEventListener('progress', (e) => {
+      const value = e.detail.totalProgress; // 0..1
+      pbar.style.width = (value * 100).toFixed(0) + '%';
+    });
+
+    // AR support handling
+    mv.addEventListener('ar-status', (ev) => {
+      const s = ev.detail.status; // 'not-presenting' | 'session-started' | 'failed-presenting'
+      if (s === 'failed-presenting') showToast('AR failed to start. Ensure camera permission is granted and you are on HTTPS.');
+    });
+
+    mv.addEventListener('ar-tracking', (ev) => {
+      const state = ev.detail.status; // 'not-tracking' | 'tracking'
+      if (state === 'not-tracking') {
+        showToast('Move your device to help it find the floor');
+      }
+    });
+
+    // Expose AR capability
+    (async () => {
+      const can = await mv.canActivateAR;
+      if (!can) {
+        noArBtn.hidden = false;
+      }
+    })();
+
+    document.getElementById('reset').addEventListener('click', () => mv.resetInteraction());
+
+    document.getElementById('autoScale').addEventListener('click', () => {
+      const fixed = mv.getAttribute('ar-scale') === 'fixed';
+      mv.setAttribute('ar-scale', fixed ? 'auto' : 'fixed');
+      scaleMode.textContent = fixed ? 'auto' : 'fixed';
+      showToast(`AR scale set to ${fixed ? 'auto' : 'fixed'}`);
+    });
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => (toast.style.display = 'none'), 2500);
+    }
+
+    // Optional: tweak initial camera framing
+    mv.addEventListener('load', () => {
+      // Center and fit camera once
+      mv.cameraOrbit = '0deg 75deg auto';
+      mv.fieldOfView = '35deg';
+    });
+  </script>
+
+  <!--
+  QUICK CHECKLIST ✅
+  1) Serve over HTTPS (required for camera on most devices). Use localhost (https://127.0.0.1) or deploy on Netlify/Vercel.
+  2) ANDROID: Uses WebXR if supported, else opens Scene Viewer (needs Chrome + GLB/GLTF). 
+  3) iOS: Quick Look requires a USDZ file via ios-src; GLB alone will not render in native AR.
+  4) Place the model near real-world scale. ar-placement="floor" drops it onto detected plane. Use ar-scale fixed/auto.
+  5) If AR exits immediately, common causes: insecure origin, camera denied, no plane tracked yet, model too big/small, or low light.
+  -->
 </body>
 </html>
