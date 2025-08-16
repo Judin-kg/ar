@@ -12,7 +12,21 @@
       .progress-bar { position:absolute; left:50%; top:12px; transform:translateX(-50%); width:160px; height:4px; background:#ddd; border-radius:2px; overflow:hidden; }
       .update-bar { width:0; height:100%; background:#999; }
       .hide { display:none; }
-      #ar-button { position:absolute; left:50%; bottom:24px; transform:translateX(-50%); padding:12px 16px; border-radius:999px; border:none; }
+      #ar-button { 
+        position:absolute; 
+        left:50%; 
+        bottom:24px; 
+        transform:translateX(-50%); 
+        padding:12px 16px; 
+        border-radius:999px; 
+        border:none; 
+        background:#ff6600; 
+        color:white; 
+        font-size:14px; 
+        cursor:pointer;
+        box-shadow:0 4px 10px rgba(0,0,0,0.3);
+      }
+      #ar-button:hover { background:#e05500; }
       #ar-prompt { position:absolute; right:16px; bottom:16px; }
       #ar-prompt img { width:40px; }
     </style>
@@ -24,28 +38,32 @@
       poster="https://ar-wfz8.vercel.app/8_16_2025.webp"
       camera-controls
       ar
-      ar-modes="webxr scene-viewer quick-look"
+      ar-modes="scene-viewer quick-look webxr"
       tone-mapping="neutral"
       shadow-intensity="1"
       exposure="1"
       environment-image="neutral"
-      disable-zoom="false"
       autoplay>
       
       <div class="progress-bar" slot="progress-bar"><div class="update-bar"></div></div>
-      <button slot="ar-button" id="ar-button">View in your space</button>
+      <button slot="ar-button" id="ar-button">📱 View in your space</button>
       <div id="ar-prompt"><img alt="" src="https://modelviewer.dev/shared-assets/icons/hand.png" /></div>
     </model-viewer>
 
     <script>
-      // Optional: animate the progress bar
       const mv = document.querySelector('model-viewer');
       const bar = document.querySelector('.update-bar');
       const wrap = document.querySelector('.progress-bar');
+
       mv.addEventListener('progress', (e) => {
         const p = Math.round(e.detail.totalProgress * 100);
         bar.style.width = p + '%';
         wrap.classList.toggle('hide', p === 100);
+      });
+
+      // Hide the hand prompt after user interacts
+      mv.addEventListener('camera-change', () => {
+        document.querySelector('#ar-prompt').style.display = 'none';
       });
     </script>
   </body>
